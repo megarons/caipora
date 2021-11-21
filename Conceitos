@@ -1,0 +1,5 @@
+listarPendentes
+    Traz os protocolos pre alocados que nao finalizaram o processamento.
+    O sistema de negocio pode simplesmente reinicia-los considerando uma falha momentanea em casos sincronos ou criar um abend baseado em quantidade ou tempo de pendencias por exemplo.
+
+    Em casos assincronos o cliente pode utilizar a lista de pendentes para buscar em um provedor assincrono a resposta de um processamento iniciado anteriormente (Fazer pooling).
