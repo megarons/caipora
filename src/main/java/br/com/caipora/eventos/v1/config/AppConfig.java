@@ -23,6 +23,6 @@ import javax.ws.rs.core.Application;
                 contact = @Contact(
                         name = "Example API Support",
                         url = "http://exampleurl.com/contact",
-                        email = "techsupport@example.com"))
+                        email = "megarons@gmail.com"))
 )
 public class AppConfig extends Application {}

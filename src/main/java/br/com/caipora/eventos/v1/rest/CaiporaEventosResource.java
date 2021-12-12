@@ -12,6 +12,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.eclipse.microprofile.metrics.annotation.Counted;
+import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -19,10 +21,10 @@ import org.slf4j.MDC;
 import br.com.caipora.eventos.v1.exceptions.ErroNegocialException;
 import br.com.caipora.eventos.v1.models.ConfiguracaoConsumidor;
 import br.com.caipora.eventos.v1.models.Evento;
-import br.com.caipora.eventos.v1.models.EventoGrupoCaipora;
+import br.com.caipora.eventos.v1.models.PayloadEventoCaipora;
 import br.com.caipora.eventos.v1.services.CaiporaEventosService;
 
-@Path("/caipora/v1/evento")
+@Path("/caipora/v1")
 public class CaiporaEventosResource {
 
 	@Inject
@@ -42,12 +44,14 @@ public class CaiporaEventosResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
+	@Counted(name = "qtd_buscar_proximo", description = "Quantos pedidos de evento para processamento.")
+	@Timed(name = "tempo_buscar_proximo", description = "Tempo para entregar um evento.")
 	@Path("/proximo")
 	public Response buscarProximo(ConfiguracaoConsumidor subscritor) throws  ErroNegocialException {
 		Instant start = Instant.now();
 		try {
 			MDC.put("id", "grupo=" + subscritor.getIdGrupo() + ",id=" + subscritor.getIdExecutor());
-			EventoGrupoCaipora eventoGrupo = caiporaEventosService.buscarProximo(
+			PayloadEventoCaipora eventoGrupo = caiporaEventosService.buscarProximo(
 					//identificacao
 					subscritor.getIdGrupo(),
 					subscritor.getIdExecutor(), 
@@ -85,12 +89,12 @@ public class CaiporaEventosResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/")
-	public Response finalizarEvento(EventoGrupoCaipora eventoGrupo) throws ErroNegocialException {
+	public Response finalizarEvento(PayloadEventoCaipora eventoGrupo) throws ErroNegocialException {
 		Instant start = Instant.now();
 		try {
 
 			MDC.put("id", eventoGrupo.getIdGrupo() + ",offset=" + eventoGrupo.getId_evento_offset()
-					+ ",particao=" + eventoGrupo.getParticao() + ",ptl=" + eventoGrupo.getPtl());
+					+ ",particao=" + eventoGrupo.getParticao() );
 			caiporaEventosService.finalizarEvento(eventoGrupo);
 
 			return Response.ok().build();

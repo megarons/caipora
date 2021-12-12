@@ -14,13 +14,13 @@ public enum ErrosSistema implements IEnumErro {
     ATINGIDO_LIMITE_MAXIMO_DE_CONSUMIDORES_CONCORRENTES("406","406 Not Acceptable| Foi atingido o limite máximo de consumidores para o grupo."),
 	
     
-    ERRO_AO_INSERIR_EVENTO("800","Erro ao inserir evento."), 
-	ERRO_NEGOCIO_CODIGO_IDENTIFICADOR_GRUPO_NAO_INFORMADO("800","Código de grupo não informado."), 
-	ERRO_NEGOCIO_CODIGO_IDENTIFICADOR_UNICO_CONSUMIDOR("800","Identificador unico do consumidor não informado."), 
-	ERRO_NEGOCIO_KEEPALIVE_NAO_SETADO("800","ValorCicloTempoAtivo (KeepAlive) não informado."), 
-	ERRO_NEGOCIO_OFFSET_NAO_INFORMADO("800","Offset do evento não informado."), 
-	ERRO_NEGOCIO_PARTICAO_NAO_INFORMADA("800","Particao do evento não informada."), 
-	ERRO_NEGOCIAL_GERA_HASH("800","Erro ao gerar Hash.");
+    ERRO_AO_INSERIR_EVENTO("801","Erro ao inserir evento."), 
+	ERRO_NEGOCIO_CODIGO_IDENTIFICADOR_GRUPO_NAO_INFORMADO("802","Código de grupo não informado."), 
+	ERRO_NEGOCIO_CODIGO_IDENTIFICADOR_UNICO_CONSUMIDOR("803","Identificador unico do consumidor não informado."), 
+	ERRO_NEGOCIO_KEEPALIVE_NAO_SETADO("804","ValorCicloTempoAtivo (KeepAlive) não informado."), 
+	ERRO_NEGOCIO_OFFSET_NAO_INFORMADO("805","Offset do evento não informado."), 
+	ERRO_NEGOCIO_PARTICAO_NAO_INFORMADA("806","Particao do evento não informada."), 
+	ERRO_NEGOCIAL_GERA_HASH("807","Erro ao gerar Hash.");
 
     String codigo;
     String mensagem;

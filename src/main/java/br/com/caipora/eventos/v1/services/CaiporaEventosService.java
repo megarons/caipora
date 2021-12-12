@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import br.com.caipora.eventos.v1.dao.CaiporaEventosDao;
 import br.com.caipora.eventos.v1.exceptions.ErroNegocialException;
 import br.com.caipora.eventos.v1.exceptions.ErrosSistema;
-import br.com.caipora.eventos.v1.exceptions.ProtocolCommunicationException;
-import br.com.caipora.eventos.v1.models.EventoGrupoCaipora;
+import br.com.caipora.eventos.v1.exceptions.ComunicaConsumidorException;
+import br.com.caipora.eventos.v1.models.PayloadEventoCaipora;
 import br.com.caipora.eventos.v1.models.Particao;
 import br.com.caipora.eventos.v1.models.Subscricao;
 
@@ -30,20 +30,20 @@ public class CaiporaEventosService {
 		return eventoCriado;
 	}
 
-	public EventoGrupoCaipora buscarProximo(int idGrupo, String idExecutor, int tempoKeepAlive, int entrega,
+	public PayloadEventoCaipora buscarProximo(int idGrupo, String idExecutor, int tempoKeepAlive, int entrega,
 			int estado, int tipologia) throws ErroNegocialException {
 
-		EventoGrupoCaipora evento = null;
+		PayloadEventoCaipora evento = null;
 		// resolver particionamento e rebalanceamento
 
-		int QTD_MAXIMA_PARTICOES_GRUPO = 40; // calcular e colocar no cache 
+		int QTD_MAXIMA_PARTICOES_GRUPO = 20; // calcular e colocar no cache 
 		int QTD_REGISTROS_POR_PAGINA = 10; // calcular por 3 vezes a quantidade de inscritos
 
 		caiporaEventosDao.matarConfiguracoesClientesInativas(idGrupo, idExecutor, tempoKeepAlive,
 				QTD_MAXIMA_PARTICOES_GRUPO);
 		Subscricao subscricao = caiporaEventosDao.encontrarSubscricao(idGrupo, idExecutor, QTD_MAXIMA_PARTICOES_GRUPO);
 		caiporaEventosDao.atualizarUltimaAtividade(subscricao);
-		if (caiporaEventosDao.particoesBalanceadas_verificacaoCentralizadaNoDB(idGrupo)) {
+		if (caiporaEventosDao.particoesBalanceadas_verificacaoCentralizadaNoDB(idGrupo,QTD_MAXIMA_PARTICOES_GRUPO)) {
 
 			// buscar mensagens para processar.
 			evento = retornarListaTrabalho(idGrupo, idExecutor, subscricao.getParticao(), QTD_REGISTROS_POR_PAGINA,
@@ -51,15 +51,15 @@ public class CaiporaEventosService {
 		}
 
 		if (evento == null) {
-			throw new ProtocolCommunicationException(ErrosSistema.CC_NAO_FORAM_ENCONTRADOS_REGISTROS.get());
+			throw new ComunicaConsumidorException(ErrosSistema.CC_NAO_FORAM_ENCONTRADOS_REGISTROS.get());
 		}
 		return evento;
 
 	}
 
-	private EventoGrupoCaipora retornarListaTrabalho(int idGrupo, String idExecutor, List<Particao> particoes,
+	private PayloadEventoCaipora retornarListaTrabalho(int idGrupo, String idExecutor, List<Particao> particoes,
 			int registroPorPagina, int entrega, int estado, int tipologia) throws ErroNegocialException {
-		EventoGrupoCaipora proximo = null;
+		PayloadEventoCaipora proximo = null;
 
 		proximo = caiporaEventosDao.buscarProximo(idGrupo, idExecutor, particoes, registroPorPagina, entrega, estado,
 				tipologia);
@@ -73,7 +73,7 @@ public class CaiporaEventosService {
 		return proximo;
 	}
 
-	public void finalizarEvento(EventoGrupoCaipora eventoGrupo) throws ErroNegocialException {
+	public void finalizarEvento(PayloadEventoCaipora eventoGrupo) throws ErroNegocialException {
 		logger.debug("IN");
 		caiporaEventosDao.finalizarEvento(eventoGrupo);
 		logger.debug("OUT");

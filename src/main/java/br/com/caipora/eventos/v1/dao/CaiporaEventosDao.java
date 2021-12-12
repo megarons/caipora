@@ -15,12 +15,12 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.com.caipora.eventos.v1.exceptions.ComunicaConsumidorException;
 import br.com.caipora.eventos.v1.exceptions.ErroNegocialException;
 import br.com.caipora.eventos.v1.exceptions.ErroSqlException;
 import br.com.caipora.eventos.v1.exceptions.ErrosSistema;
-import br.com.caipora.eventos.v1.exceptions.ProtocolCommunicationException;
-import br.com.caipora.eventos.v1.models.EventoGrupoCaipora;
 import br.com.caipora.eventos.v1.models.Particao;
+import br.com.caipora.eventos.v1.models.PayloadEventoCaipora;
 import br.com.caipora.eventos.v1.models.Subscricao;
 import io.agroal.api.AgroalDataSource;
 
@@ -270,7 +270,7 @@ public class CaiporaEventosDao {
 	private void rebalancearParticoes(int idGrupo, String idExecutor, int qtdMaximaParticoes) throws ErroNegocialException {
 		logger.trace("rebalancearParticoes");
 
-		if (!particoesBalanceadas_verificacaoCentralizadaNoDB(idGrupo)) {
+		if (!particoesBalanceadas_verificacaoCentralizadaNoDB(idGrupo,qtdMaximaParticoes)) {
 
 			// Elege id do leader
 			String leader = getLeader_verificacaoCentralizadaNoDB(idGrupo);
@@ -333,7 +333,7 @@ public class CaiporaEventosDao {
 //						+ idExecutor);
 //			}
 			
-			throw new ProtocolCommunicationException(br.com.caipora.eventos.v1.exceptions.ErrosSistema.CC_REBALANCEANDO_CONSUMIDORES.get());
+			throw new ComunicaConsumidorException(br.com.caipora.eventos.v1.exceptions.ErrosSistema.CC_REBALANCEANDO_CONSUMIDORES.get());
 			
 		} else {
 
@@ -343,36 +343,51 @@ public class CaiporaEventosDao {
 
 	}
 
-	public boolean particoesBalanceadas_verificacaoCentralizadaNoDB(int cd_grupo) throws ErroNegocialException  {
-		String sqlParticoesBalaceadas = "with " + " subcricao_executores as ("
-				+ "		select a.id_executor from 	\"eventos\".subscricoes_particoes a where  a.cd_grupo = ? group by id_executor  ),	"
-				+ " subscricoes_ativas as ( "
-				+ "		select 	a.id_executor  from 	\"eventos\".subscricoes a where a.cd_grupo = ? ), 	 "
-				+ " diferentes as ( "
-				+ "		select * from subscricoes_ativas a where not exists ( select 1 from subcricao_executores b where a.id_executor = b.id_executor) "
-				+ "		union all "
-				+ "		select * from subcricao_executores a where not exists ( select 1 from subscricoes_ativas  b where a.id_executor = b.id_executor) "
-				+ ") " + " select count(-1) from diferentes";
+	public boolean particoesBalanceadas_verificacaoCentralizadaNoDB(int cd_grupo, int numeroParticoes) throws ErroNegocialException  {
+		
+		StringBuilder query = new StringBuilder();
+		query.append("with  subcricao_executores as (\n");
+		query.append("select a.id_executor from \t\"eventos\".subscricoes_particoes a where  a.cd_grupo = ? group by id_executor  ),\n");
+		query.append("subscricoes_ativas as (\n");
+		query.append("select \ta.id_executor  from \t\"eventos\".subscricoes a where a.cd_grupo = ? ),\n");
+		query.append("diferentes as (\n");
+		query.append("select * from subscricoes_ativas a where not exists ( select 1 from subcricao_executores b where a.id_executor = b.id_executor)\n");
+		query.append("union all\n");
+		query.append("select * from subcricao_executores a where not exists ( select 1 from subscricoes_ativas  b where a.id_executor = b.id_executor)\n");
+		query.append("),\n");
+		query.append("particoesUtilizadas as (\n");
+		query.append("select count(-1) as qtdParticoes from eventos.subscricoes_particoes\n");
+		query.append("),\n");
+		query.append("diferentesQtd as (\n");
+		query.append("select count(-1) as qtdDiferentes from diferentes\n");
+		query.append(")\n");
+		query.append("select a.qtdDiferentes, b.qtdParticoes from diferentesQtd a, particoesUtilizadas b\n");
+
 
 		int qtdDesbalanceados = 1;
+		int qtdParticoes = 0;
+		
 		try (Connection con = defaultDataSource.getConnection();
-				PreparedStatement prepareStatement = con.prepareStatement(sqlParticoesBalaceadas);) {
+				PreparedStatement prepareStatement = con.prepareStatement(query.toString());) {
 			prepareStatement.setInt(1, cd_grupo);
 			prepareStatement.setInt(2, cd_grupo);
 
 			try (ResultSet rs = prepareStatement.executeQuery();) {
 				while (rs.next()) {
 					qtdDesbalanceados = rs.getInt(1);
+					qtdParticoes = rs.getInt(2);
 				}
 			}
-			if (qtdDesbalanceados != 0) {
-				logger.info("ESTA DESBALANCEADO !!!");
+			
+			if (qtdDesbalanceados != 0 || (qtdParticoes != 0 && qtdParticoes != numeroParticoes)) {
+				logger.info("ESTA DESBALANCEADO !!! qtdDesbalanceados="+qtdDesbalanceados+",qtdParticoes="+qtdParticoes+",numeroParticoes="+numeroParticoes);
+				return false;
 			}
 		} catch (SQLException e) {
 			logger.error("Erro particoesBalanceadas_verificacaoCentralizadaNoDB", e);
 			throw new ErroSqlException(e);
 		}
-		return ((qtdDesbalanceados == 0) ? true : false);
+		return true;
 
 	}
 
@@ -449,10 +464,10 @@ public class CaiporaEventosDao {
 		return lista;
 	}
 
-	public EventoGrupoCaipora buscarProximo(int idGrupo, String idExecutor, List<Particao> particoes, int registroPorPagina,  int entrega, int estado, int tipologia) throws ErroNegocialException
+	public PayloadEventoCaipora buscarProximo(int idGrupo, String idExecutor, List<Particao> particoes, int registroPorPagina,  int entrega, int estado, int tipologia) throws ErroNegocialException
 			{
 
-		EventoGrupoCaipora eventoGrupo = buscarProximoTabelaEventoGrupo(idGrupo,idExecutor, particoes);
+		PayloadEventoCaipora eventoGrupo = buscarProximoTabelaEventoGrupo(idGrupo,idExecutor, particoes);
 		if (eventoGrupo == null) {
 			int paginacaoConsumidores = registroPorPagina;
 			logger.info("paginacaoConsumidores="+paginacaoConsumidores);
@@ -468,9 +483,9 @@ public class CaiporaEventosDao {
 		return eventoGrupo;
 	}
 
-	private void updateRecorrencia(EventoGrupoCaipora eventoGrupo) throws ErroNegocialException {
+	private void updateRecorrencia(PayloadEventoCaipora eventoGrupo) throws ErroNegocialException {
 		logger.trace("updateEstadoTratamentoParaPendenteConsumidor");
-		String sqlAtualizaGrupo = "UPDATE \"eventos\".eventos_grupo SET recorrencia = recorrencia + 1  WHERE cd_grupo = ? and particao = ? and id_evento_offset = ? and ptl = ? and estado_processamento = ?";
+		String sqlAtualizaGrupo = "UPDATE \"eventos\".eventos_grupo SET recorrencia = recorrencia + 1  WHERE cd_grupo = ? and particao = ? and id_evento_offset = ? and  estado_processamento = ?";
 
 		try (Connection con = defaultDataSource.getConnection();
 				PreparedStatement prepareStatement = con.prepareStatement(sqlAtualizaGrupo);) {
@@ -481,8 +496,7 @@ public class CaiporaEventosDao {
 				prepareStatement.setInt(1, eventoGrupo.getIdGrupo());
 				prepareStatement.setLong(2, eventoGrupo.getParticao());
 				prepareStatement.setLong(3, eventoGrupo.getId_evento_offset());
-				prepareStatement.setLong(4, eventoGrupo.getPtl());
-				prepareStatement.setInt(5, _ESTADO_PROCESSAMENTO_PRONTO_P_CONSUMO);
+				prepareStatement.setInt(4, _ESTADO_PROCESSAMENTO_PRONTO_P_CONSUMO);
 
 				prepareStatement.execute();
 			}
@@ -493,7 +507,7 @@ public class CaiporaEventosDao {
 		}
 	}
 
-	private PreparedStatement atualizaHistorico(Connection con, EventoGrupoCaipora eventoGrupo, int estado) throws SQLException {
+	private PreparedStatement atualizaHistorico(Connection con, PayloadEventoCaipora eventoGrupo, int estado) throws SQLException {
 		String sqlAtualizaHistoricoGrupo;
 			sqlAtualizaHistoricoGrupo = "INSERT INTO \"eventos\".historico_eventos_grupo "
 				+ "("
@@ -511,10 +525,10 @@ public class CaiporaEventosDao {
 				psHist.setInt(5, eventoGrupo.getRecorrencia());
 				psHist.setTimestamp(6, eventoGrupo.getTimestampInclusaoRegistro());
 				psHist.setTimestamp(7,  new Timestamp(System.currentTimeMillis()));// mudar o insert para fazer o select na tabela evento_grupo ao inves de montar o objeto
-				psHist.setLong(8, eventoGrupo.getPtl());
-				psHist.setInt(9, eventoGrupo.getEntrega());
-				psHist.setLong(10, eventoGrupo.getEstado());
-				psHist.setLong(11, eventoGrupo.getTipologia());
+				psHist.setLong(8, eventoGrupo.getEvento().getProtocolo());
+				psHist.setInt(9, eventoGrupo.getEvento().getEntrega());
+				psHist.setLong(10, eventoGrupo.getEvento().getEstado());
+				psHist.setLong(11, eventoGrupo.getEvento().getTipologia());
 				
 				psHist.execute();
 				return psHist;
@@ -540,11 +554,11 @@ public class CaiporaEventosDao {
 	
 				try (Connection con = defaultDataSource.getConnection(); Statement psQuery = con.createStatement();) {
 	
-					List<EventoGrupoCaipora> eventos = new ArrayList<EventoGrupoCaipora>();
+					List<PayloadEventoCaipora> eventos = new ArrayList<PayloadEventoCaipora>();
 					try (ResultSet rs = psQuery.executeQuery(sqlReloadEventos);) {
 						while (rs.next()) {
 							
-							eventos.add(new EventoGrupoCaipora(rs.getInt(1), rs.getLong(4), rs.getInt(2), rs.getLong(3),
+							eventos.add(new PayloadEventoCaipora(rs.getInt(1), rs.getLong(4), rs.getInt(2), rs.getLong(3),
 									rs.getInt(6), rs.getInt(7), rs.getInt(8), rs.getInt(5), rs.getTimestamp(9)));
 						}
 	
@@ -565,15 +579,15 @@ public class CaiporaEventosDao {
 						try(PreparedStatement psHist = con.prepareStatement(sqlAtualizaHistoricoGrupo);){
 							con.setAutoCommit(false);
 	
-							for (EventoGrupoCaipora eventoGrupo : eventos) {
+							for (PayloadEventoCaipora eventoGrupo : eventos) {
 								psInsertEvento.setInt(1, eventoGrupo.getIdGrupo());
 								psInsertEvento.setLong(2, eventoGrupo.getId_evento_offset());
 								psInsertEvento.setLong(3, eventoGrupo.getParticao());
 								psInsertEvento.setInt(4, eventoGrupo.getEstado_processamento());
-								psInsertEvento.setLong(5, eventoGrupo.getPtl());
-								psInsertEvento.setInt(6, eventoGrupo.getEntrega());
-								psInsertEvento.setInt(7, eventoGrupo.getEstado());
-								psInsertEvento.setInt(8, eventoGrupo.getTipologia());
+								psInsertEvento.setLong(5, eventoGrupo.getEvento().getProtocolo());
+								psInsertEvento.setInt(6, eventoGrupo.getEvento().getEntrega());
+								psInsertEvento.setInt(7, eventoGrupo.getEvento().getEstado());
+								psInsertEvento.setInt(8, eventoGrupo.getEvento().getTipologia());
 								psInsertEvento.addBatch();
 								
 								psHist.setInt(1, eventoGrupo.getIdGrupo());
@@ -583,10 +597,10 @@ public class CaiporaEventosDao {
 								psHist.setInt(4, eventoGrupo.getEstado_processamento());
 
 								
-								psHist.setLong(5, eventoGrupo.getPtl());
-								psHist.setInt(6, eventoGrupo.getEntrega());
-								psHist.setLong(7, eventoGrupo.getEstado());
-								psHist.setLong(8, eventoGrupo.getTipologia());
+								psHist.setLong(5, eventoGrupo.getEvento().getProtocolo());
+								psHist.setInt(6, eventoGrupo.getEvento().getEntrega());
+								psHist.setLong(7, eventoGrupo.getEvento().getEstado());
+								psHist.setLong(8, eventoGrupo.getEvento().getTipologia());
 								
 								psHist.addBatch();
 	
@@ -637,7 +651,7 @@ public class CaiporaEventosDao {
 		return query.toString();
 	}
 
-	private EventoGrupoCaipora buscarProximoTabelaEventoGrupo(int idGrupo, String idExecutor, List<Particao> particoes) throws ErroNegocialException
+	private PayloadEventoCaipora buscarProximoTabelaEventoGrupo(int idGrupo, String idExecutor, List<Particao> particoes) throws ErroNegocialException
 			 {
 		String particoesSQL = particaoToSQL(particoes);
 
@@ -653,9 +667,9 @@ public class CaiporaEventosDao {
 			prepareStatement.setInt(1, idGrupo);
 
 			try (ResultSet rs = prepareStatement.executeQuery();) {
-				EventoGrupoCaipora evento = null;
+				PayloadEventoCaipora evento = null;
 				while (rs.next()) {
-					evento = new EventoGrupoCaipora(rs.getInt(1), rs.getLong(2), rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getTimestamp(6),
+					evento = new PayloadEventoCaipora(rs.getInt(1), rs.getLong(2), rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getTimestamp(6),
 							rs.getLong(7), rs.getInt(8), rs.getInt(9), rs.getInt(10));
 					return evento;
 				}
@@ -668,7 +682,7 @@ public class CaiporaEventosDao {
 
 	}
 
-	public void finalizarEvento(EventoGrupoCaipora eventoGrupo) throws ErroNegocialException  {
+	public void finalizarEvento(PayloadEventoCaipora eventoGrupo) throws ErroNegocialException  {
 		logger.trace("CaiporaEventosDao.finalizarProcessamentoEvento");
 		
 		
