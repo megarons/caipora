@@ -1,0 +1,10 @@
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/exceptions/ClienteCaiporaEventosException.java
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/config/AppConfig.java
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/integration/BrokerCaiporaException.java
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/models/Evento.java
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/models/ConfiguracaoConsumidor.java
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/rest/eventos/ConsumidorBase.java
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/rest/eventos/ConsumidorTest.java
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/integration/BrokerCaiporaExceptionMapper.java
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/integration/BrokerCaiporaResource.java
+/Users/desenv/Desenv/ceub/caipora-cliente/src/main/java/br/com/caipora/eventos/v1/models/PayloadEventoCaipora.java

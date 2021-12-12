@@ -1,0 +1,101 @@
+version: '3.5'
+
+services:
+  caipora-broker:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./caipora
+    image: mega/caipora-broker
+    container_name: caipora-broker
+    ports:
+      - "8080:8080"
+    networks:
+      - caipora-lan
+    depends_on: 
+      - postgres
+
+
+  caipora-cliente-1:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./caipora-cliente
+    image: mega/caipora-cliente
+    container_name: caipora-cliente-1
+    networks:
+      - caipora-lan
+    depends_on: 
+      - caipora-broker
+
+  caipora-cliente-2:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./caipora-cliente
+    image: mega/caipora-cliente
+    container_name: caipora-cliente-2
+    networks:
+      - caipora-lan
+    depends_on: 
+      - caipora-broker
+
+  caipora-cliente-3:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./caipora-cliente
+    image: mega/caipora-cliente
+    container_name: caipora-cliente-3
+    networks:
+      - caipora-lan
+    depends_on: 
+      - caipora-broker
+
+  caipora-cliente-4:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./caipora-cliente
+    image: mega/caipora-cliente
+    container_name: caipora-cliente-4
+    networks:
+      - caipora-lan
+    depends_on: 
+      - caipora-broker
+      
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_DB: 'desenv'
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGDATA: /data/postgres
+    volumes:
+      - ./caipora-db/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      
+    ports:
+      - "5432:5432"
+    networks:
+      - caipora-lan
+    restart: unless-stopped
+  
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+       - pgadmin:/var/lib/pgadmin
+
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - caipora-lan
+    restart: unless-stopped
+
+networks:
+  caipora-lan:
+    driver: bridge
+
+volumes:
+    postgres: 
+    pgadmin:

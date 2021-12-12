@@ -1,0 +1,101 @@
+version: "3.4"
+services:
+
+  ima-eventos-cli:
+    container_name: ima-eventos-cli
+    image: ima-eventos-cli:latest
+    # se estiver rodando docker em windows, comentar com # a linha abaixo, do parametro user:
+    user: "${myUID}:${myGroup}"
+    build:
+      context: ../
+      dockerfile: ./Dockerfile.dev
+    environment:
+      # Opção para jmx debug
+      - JAVA_JMX_DEBUG=-Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=8999 -Dcom.sun.management.jmxremote.rmi.port=8999 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false
+      # Configuracao do LOG
+      - QUARKUS_LOG_CONSOLE_ENABLE=true
+      - QUARKUS_LOG_CONSOLE_LEVEL=DEBUG
+      - QUARKUS_LOG_MIN_LEVEL=DEBUG
+      # OPENTRACING - JAEGER
+      - QUARKUS_JAEGER_SERVICE_NAME=ima-eventos-cli
+      - QUARKUS_JAEGER_SAMPLER_TYPE=const
+      - QUARKUS_JAEGER_SAMPLER_PARAM=1
+      - QUARKUS_JAEGER_AGENT_HOST_PORT=jaeger
+      # Configuracao do Maven(m2) para executar no docker compose, usar apenas em desenv local.
+      - REPO_LOCAL=/temp/.m2/repository
+      - ATF_USER=$ATF_USER
+      - ATF_TOKEN=$ATF_TOKEN
+      # interface para consumir o IIB
+      - BR_COM_BB_IMA_INTEGRATION_INTERFACECONSUMIDOR_MP_REST_URL=http://iib-curio:8081      
+    volumes:
+      - $HOME/.m2/repository:/temp/.m2/repository
+      - $PWD:/app
+     # se estiver rodando docker em windows, comentar com # as duas linhas acima e descomentar as duas linhas abaixo:
+     # - ${HOME}\\.m2\repository:/temp/.m2/repository
+     # - ${PWD}:/app
+    networks:
+      - ima-eventos-cli-net
+    ports:
+      - "8080:8080" # Server
+      - "5005:5005" # DEBUG Não uilizar nos ambientes de producao/homologacao
+      - "8999:8999" # DEBUG JMX Não utilizar nos ambientes de producao/homologacao 
+  # =====================================================================================
+  #   Imagens para executar localmente, elas ja estarão disponiveis para seu namespace
+  # =====================================================================================
+  iib-curio:
+    container_name: iib-curio
+    image: atf.intranet.bb.com.br:5001/bb/iib/iib-curio:0.5.9
+    ports:
+      - "8081:8081"
+    environment:
+      - KUMULUZEE_ENV=dev
+      - CURIO_CACHE_CONFIGURACAO_IIB=iib-slave.redis.bdh.desenv.bb.com.br
+      - CURIO_CACHE_CONFIGURACAO_IIB_ID=iib:configuracao:k8s-integracao
+      - CURIO_SIGLA_APLICACAO=ima
+      - CURIO_APLICACAO_HOST=http://ima-eventos-cli:8080
+      - CURIO_IIB_LOG_LEVEL=FINE
+      - CURIO_DRY_RUN=false
+      - CURIO_MODO_DESENVOLVIMENTO=true
+      - KUMULUZEE_LOGS_LOGVERSO_NAME=br.com.bb
+      - KUMULUZEE_LOGS_LOGVERSO_LEVEL=TRACE
+      - CURIO_OP_CONSUMIDOR=br.com.bb.ima.operacao:Op6131758-v1:4.3.0-SNAPSHOT|
+                            br.com.bb.ima.operacao:Op6139162-v1:4.3.0-SNAPSHOT|
+    networks:
+      - ima-eventos-cli-net
+  jaeger:
+    image: atf.intranet.bb.com.br:5001/jaegertracing/all-in-one:latest #jaegertracing/all-in-one
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "9411:9411"
+    networks:
+      - ima-eventos-cli-net
+volumes:
+  maven-repo:
+  # ====================================================================================
+  #    Configuração da rede do docker para este microservico
+  #    Default: 192.168.203.192/27
+  #    Caso você já tenha subido outro microservico nesta rede, você pode executar outras
+  #  usando um dos enderecos a seguir:
+  #    - 192.168.203.224/27
+  #    Neste caso não se esqueça de mudar os mapeamentos das portas para o localhost para
+  #  que não haja conflito, conforme exemplo abaixo:
+  #    Microservico 1:
+  #       ports:
+  #         - "8080:8080" (porta 8080 do localhost vai mapear a 8080 do microservico)
+  #    Microservico 2:
+  #       ports:
+  #         - "8081:8080" (porta 8081 do localhost vai mapear a 8080 do microservico)
+  # ====================================================================================
+networks:
+  ima-eventos-cli-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.203.192/27

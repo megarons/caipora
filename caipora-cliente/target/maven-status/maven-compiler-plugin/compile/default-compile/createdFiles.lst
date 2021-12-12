@@ -1,0 +1,10 @@
+br/com/caipora/eventos/v1/models/PayloadEventoCaipora.class
+br/com/caipora/eventos/v1/rest/eventos/ConsumidorTest.class
+br/com/caipora/eventos/v1/integration/BrokerCaiporaResource.class
+br/com/caipora/eventos/v1/integration/BrokerCaiporaExceptionMapper.class
+br/com/caipora/eventos/v1/models/ConfiguracaoConsumidor.class
+br/com/caipora/eventos/v1/models/Evento.class
+br/com/caipora/eventos/v1/config/AppConfig.class
+br/com/caipora/eventos/v1/rest/eventos/ConsumidorBase.class
+br/com/caipora/eventos/v1/exceptions/ClienteCaiporaEventosException.class
+br/com/caipora/eventos/v1/integration/BrokerCaiporaException.class
