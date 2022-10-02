@@ -5,7 +5,7 @@ package br.com.caipora.eventos.v1.rest;
 //
 //import org.junit.jupiter.api.Test;
 //
-//import br.com.caipora.eventos.v1.models.ConfiguracaoConsumidor;
+//import br.com.caipora.eventos.v1.models.ConfiguracaoConsumidorSubscrito;
 //import io.quarkus.test.junit.QuarkusTest;
 //import io.restassured.http.ContentType;
 //
@@ -15,7 +15,7 @@ package br.com.caipora.eventos.v1.rest;
 //	@Test
 //    public void testConsumidorNaoPassouConfiguracoes() {
 //		
-//		ConfiguracaoConsumidor consumidor = new ConfiguracaoConsumidor();
+//		ConfiguracaoConsumidorSubscrito consumidor = new ConfiguracaoConsumidorSubscrito();
 //		
 //		consumidor.setIdExecutor("id_executor");
 //		consumidor.setIdGrupo(1);

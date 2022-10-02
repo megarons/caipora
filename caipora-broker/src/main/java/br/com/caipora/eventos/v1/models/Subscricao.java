@@ -10,9 +10,6 @@ public class Subscricao {
 	private List<Particao> particao;
 	private Timestamp ts_ultima_atividade;
 
-
-
-
 	public Timestamp getTs_ultima_atividade() {
 		return ts_ultima_atividade;
 	}
@@ -28,7 +25,6 @@ public class Subscricao {
 		this.particao = particao;
 		this.ts_ultima_atividade = ts_ultima_atividade;
 	}
-
 
 	@Override
 	public String toString() {
@@ -48,7 +44,6 @@ public class Subscricao {
 		return particao;
 	}
 
-
 	public void setParticao(List<Particao> particao) {
 		this.particao = particao;
 	}
@@ -60,29 +55,5 @@ public class Subscricao {
 	public void setCd_grupo(int cd_grupo) {
 		this.cd_grupo = cd_grupo;
 	}
-
-//	public int getEntrega() {
-//		return entrega;
-//	}
-//
-//	public void setEntrega(int entrega) {
-//		this.entrega = entrega;
-//	}
-//
-//	public int getEstado() {
-//		return estado;
-//	}
-//
-//	public void setEstado(int estado) {
-//		this.estado = estado;
-//	}
-//
-//	public int getTipologia() {
-//		return tipologia;
-//	}
-//
-//	public void setTipologia(int tipologia) {
-//		this.tipologia = tipologia;
-//	}
 
 }

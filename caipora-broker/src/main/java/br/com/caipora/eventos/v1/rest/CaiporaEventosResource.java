@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import br.com.caipora.eventos.v1.exceptions.ErroNegocialException;
-import br.com.caipora.eventos.v1.models.ConfiguracaoConsumidor;
+import br.com.caipora.eventos.v1.models.ConfiguracaoConsumidorSubscrito;
 import br.com.caipora.eventos.v1.models.Evento;
 import br.com.caipora.eventos.v1.models.PayloadEventoCaipora;
 import br.com.caipora.eventos.v1.services.CaiporaEventosService;
@@ -47,7 +47,7 @@ public class CaiporaEventosResource {
 	@Counted(name = "qtd_buscar_proximo", description = "Quantos pedidos de evento para processamento.")
 	@Timed(name = "tempo_buscar_proximo", description = "Tempo para entregar um evento.")
 	@Path("/proximo")
-	public Response buscarProximo(ConfiguracaoConsumidor subscritor) throws  ErroNegocialException {
+	public Response buscarProximo(ConfiguracaoConsumidorSubscrito subscritor) throws  ErroNegocialException {
 		Instant start = Instant.now();
 		try {
 			MDC.put("id", "grupo=" + subscritor.getIdGrupo() + ",id=" + subscritor.getIdExecutor());

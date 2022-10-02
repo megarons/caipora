@@ -4,7 +4,7 @@ services:
   caipora-broker:
     build:
       dockerfile: ./Dockerfile
-      context: ./caipora
+      context: ./caipora-broker
     image: mega/caipora-broker
     container_name: caipora-broker
     ports:
@@ -70,6 +70,7 @@ services:
     volumes:
       - ./caipora-db/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
       
+      
     ports:
       - "5432:5432"
     networks:
@@ -85,6 +86,7 @@ services:
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     volumes:
        - pgadmin:/var/lib/pgadmin
+       - ./caipora-db/eventos_mensagens_202112120136_massa_eventos.csv:/tmp/evento_mock.csv
 
     ports:
       - "${PGADMIN_PORT:-5050}:80"

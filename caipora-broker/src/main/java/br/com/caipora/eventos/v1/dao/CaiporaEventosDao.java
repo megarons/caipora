@@ -44,7 +44,7 @@ public class CaiporaEventosDao {
 				.append("EXTRACT(DOY FROM CURRENT_TIMESTAMP)::TEXT,")
 				.append("LPAD(nextval('eventos.evento_sequence')::TEXT, 10, '0'));")
 				.toString();
-
+		
 		Long sequencial = null;
 		try(Connection con = defaultDataSource.getConnection();
 		PreparedStatement prepareStatement = con.prepareStatement(sqlAtualizaGrupo);

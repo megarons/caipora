@@ -32,10 +32,6 @@ public class PayloadEventoCaipora {
 		this.particao = particao;
 		this.estado_processamento = estado_processamento;
 		this.timestampInclusaoRegistro = timestampInclusaoRegistro;
-//		this.ptl = ptl;
-//		this.entrega = entrega;
-//		this.estado = estado;
-//		this.tipologia = tipologia;
 		this.evento = new Evento(ptl,entrega,estado,tipologia, tipologia);
 		this.recorrencia = recorrencia;
 	}
@@ -48,14 +44,8 @@ public class PayloadEventoCaipora {
 		this.particao = particao;
 		this.id_evento_offset = id_evento_offset;
 		this.estado_processamento = estado_processamento;
-//		this.entrega = entrega;
-//		this.estado = estado;
-//		this.tipologia = tipologia;
-//		this.ptl = ptl;
 		this.evento = new Evento(ptl,entrega,estado,tipologia, tipologia);
 		this.timestampInclusaoRegistro = timestampInclusaoRegistro;
-		
-		
 	}
 
 
@@ -71,10 +61,6 @@ public class PayloadEventoCaipora {
 		this.recorrencia = recorrencia;
 		this.timestampInclusaoRegistro = timestampInclusaoRegistro;
 		this.timestampUltimaAtualizacao = timestampUltimaAtualizacao;
-//		this.ptl = ptl;
-//		this.entrega = entrega;
-//		this.estado = estado;
-//		this.tipologia = tipologia;
 		this.evento = new Evento(ptl,entrega,estado,tipologia, tipologia);
 	}
 	public int getIdGrupo() {
