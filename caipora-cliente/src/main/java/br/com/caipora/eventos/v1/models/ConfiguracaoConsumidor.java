@@ -9,13 +9,6 @@ public class ConfiguracaoConsumidor {
 	//campos de configuração
 	private int tempoKeepAliveBalanceamentoSegundos;
 	
-	// campos filtráveis
-	private int identificadorEntrega;
-	private int estadoDocumento;
-	private int tipologiaDocumento;
-
-	
-	
 	
 	public ConfiguracaoConsumidor() {
 		super();
@@ -28,30 +21,12 @@ public class ConfiguracaoConsumidor {
 		this.tempoKeepAliveBalanceamentoSegundos = tempoKeepAliveBalanceamentoSegundos;
 	}
 	
-	public ConfiguracaoConsumidor tipologiaDocumento(int tipologiaDocumento) {
-		this.tipologiaDocumento = tipologiaDocumento;
-		return this;
-	}
-	
-	public ConfiguracaoConsumidor estadoDocumento(int estadoDocumento) {
-		this.estadoDocumento = estadoDocumento;
-		return this;
-	}
-	
-	public ConfiguracaoConsumidor identificadorEntrega(int idEntrega) {
-		this.identificadorEntrega = idEntrega;
-		return this;
-	}
-	
-
 
 	@Override
-	public String toString() {
-		return "ConfiguracaoConsumidor [idGrupo=" + idGrupo + ", idExecutor=" + idExecutor
-				+ ", tempoKeepAliveBalanceamentoSegundos=" + tempoKeepAliveBalanceamentoSegundos
-				+ ", identificadorEntrega=" + identificadorEntrega + ", estadoDocumento=" + estadoDocumento
-				+ ", tipologiaDocumento=" + tipologiaDocumento + "]";
-	}
+    public String toString() {
+        return "ConfiguracaoConsumidor [idGrupo=" + idGrupo + ", idExecutor=" + idExecutor
+                + ", tempoKeepAliveBalanceamentoSegundos=" + tempoKeepAliveBalanceamentoSegundos + "]";
+    }
 
 	public int getIdGrupo() {
 		return idGrupo;
@@ -76,30 +51,5 @@ public class ConfiguracaoConsumidor {
 	public void setTempoKeepAliveBalanceamentoSegundos(int tempoKeepAliveBalanceamentoSegundos) {
 		this.tempoKeepAliveBalanceamentoSegundos = tempoKeepAliveBalanceamentoSegundos;
 	}
-
-	public int getIdentificadorEntrega() {
-		return identificadorEntrega;
-	}
-
-	public void setIdentificadorEntrega(int identificadorEntrega) {
-		this.identificadorEntrega = identificadorEntrega;
-	}
-
-	public int getEstadoDocumento() {
-		return estadoDocumento;
-	}
-
-	public void setEstadoDocumento(int estadoDocumento) {
-		this.estadoDocumento = estadoDocumento;
-	}
-
-	public int getTipologiaDocumento() {
-		return tipologiaDocumento;
-	}
-
-	public void setTipologiaDocumento(int tipologiaDocumento) {
-		this.tipologiaDocumento = tipologiaDocumento;
-	}
-
 
 }

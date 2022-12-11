@@ -7,12 +7,12 @@ import javax.ws.rs.ext.Provider;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 
 @Provider
-@Counted(name = "ComunicaConsumidorExceptionMapper_Exceptions", absolute = true)
-public class ComunicaConsumidorExceptionMapper implements ExceptionMapper<ComunicaConsumidorException> {
+@Counted(name = "ComunicaConsumidorWarningMapper", absolute = true)
+public class ComunicaConsumidorWarningMapper implements ExceptionMapper<ComunicaConsumidorWarning> {
 
 	@Override
-	public Response toResponse(ComunicaConsumidorException e) {
-		ComunicaConsumidorHeader mensagemConsumidorControle = new ComunicaConsumidorHeader(Integer.parseInt(e.getCaiporaErro().getCodigo()), e.getCaiporaErro().getMensagem());
+	public Response toResponse(ComunicaConsumidorWarning e) {
+		ComunicaConsumidorWarningHeader mensagemConsumidorControle = new ComunicaConsumidorWarningHeader(Integer.parseInt(e.getCaiporaErro().getCodigo()), e.getCaiporaErro().getMensagem());
 
 		//lanca mensagem de header no canal para se comunicar com o consumidor.
 		//Ex. nao tem evento para tratar, estrutura esta se rebalanceando,etc...

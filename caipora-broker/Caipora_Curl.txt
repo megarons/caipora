@@ -1,2 +1,3 @@
+curl -X POST "http://localhost:8080/caipora/v1/evento" -H  "accept: */*" -H  "Content-Type: application/json" -d "{\"payload\":\"{nome:megaron}\",\"topico\":\"ENVIAR_MSG_EMAIL\"}"
 curl 'http://localhost:8061/caipora/v1/evento/proximo' -X POST -H "Content-Type: application/json"  -d '{"idGrupo":"1", 	"idExecutor":"teste-1", 	"tempoKeepAliveBalanceamentoSegundos": "5"}'
 curl 'http://localhost:8061/caipora/v1/evento' -X DELETE -H "Content-Type: application/json"  -d '{"entrega":42,"estado":36,"estado_processamento":1,"idGrupo":1,"id_evento_offset":1,"particao":1,"ptl":2021001001,"recorrencia":82,"timestampInclusaoRegistro":"2021-11-14T21:04:19.430117Z[UTC]","tipologia":10}'

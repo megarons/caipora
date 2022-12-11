@@ -15,6 +15,49 @@ services:
       - postgres
 
 
+  caipora-cliente-1:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./caipora-cliente
+    image: mega/caipora-cliente
+    container_name: caipora-cliente-1
+    networks:
+      - caipora-lan
+    depends_on: 
+      - caipora-broker
+
+  caipora-cliente-2:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./caipora-cliente
+    image: mega/caipora-cliente
+    container_name: caipora-cliente-2
+    networks:
+      - caipora-lan
+    depends_on: 
+      - caipora-broker
+
+  caipora-cliente-3:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./caipora-cliente
+    image: mega/caipora-cliente
+    container_name: caipora-cliente-3
+    networks:
+      - caipora-lan
+    depends_on: 
+      - caipora-broker
+
+  caipora-cliente-4:
+    build:
+      dockerfile: ./Dockerfile
+      context: ./caipora-cliente
+    image: mega/caipora-cliente
+    container_name: caipora-cliente-4
+    networks:
+      - caipora-lan
+    depends_on: 
+      - caipora-broker
       
   postgres:
     container_name: postgres_container

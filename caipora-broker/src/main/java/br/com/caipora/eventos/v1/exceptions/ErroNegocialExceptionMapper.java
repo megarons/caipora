@@ -7,7 +7,7 @@ public class ErroNegocialExceptionMapper implements ExceptionMapper<ErroNegocial
 
 		@Override
 		public Response toResponse(ErroNegocialException e) {
-			ComunicaConsumidorHeader eventoGrupoBrokerComunication = new ComunicaConsumidorHeader(Integer.parseInt(e.getCaiporaErro().getCodigo()), e.getCaiporaErro().getMensagem());
+			ComunicaConsumidorWarningHeader eventoGrupoBrokerComunication = new ComunicaConsumidorWarningHeader(Integer.parseInt(e.getCaiporaErro().getCodigo()), e.getCaiporaErro().getMensagem());
 			return Response.status(422).entity(eventoGrupoBrokerComunication).build();
 		}
 }

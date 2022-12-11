@@ -1,8 +1,8 @@
 package br.com.caipora.eventos.v1.exceptions;
 
-public class ComunicaConsumidorException extends ErroNegocialException {
+public class ComunicaConsumidorWarning extends ErroNegocialException {
 
-	public ComunicaConsumidorException(CaiporaErro caiporaErro) {
+	public ComunicaConsumidorWarning(CaiporaErro caiporaErro) {
 		super(caiporaErro);
 	}
 

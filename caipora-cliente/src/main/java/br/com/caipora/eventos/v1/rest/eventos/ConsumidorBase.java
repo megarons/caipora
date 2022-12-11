@@ -1,8 +1,9 @@
 package br.com.caipora.eventos.v1.rest.eventos;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -11,6 +12,7 @@ import java.util.concurrent.Executors;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.MDC;
 import org.slf4j.Logger;
@@ -19,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import br.com.caipora.eventos.v1.integration.BrokerCaiporaResource;
 import br.com.caipora.eventos.v1.models.ConfiguracaoConsumidor;
 import br.com.caipora.eventos.v1.models.Evento;
-import br.com.caipora.eventos.v1.models.PayloadEventoCaipora;
+import br.com.caipora.eventos.v1.models.EventoComunicacao;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 
@@ -33,7 +35,7 @@ public abstract class ConsumidorBase implements Runnable {
 
 	private Logger logger = LoggerFactory.getLogger(ConsumidorBase.class);
 
-	private String idConsumidor = UUID.randomUUID().toString();
+	private String idConsumidor = getID();
 
 	void onStart(@Observes StartupEvent ev) throws InterruptedException, ExecutionException {
 		MDC.put("idConsumidor", idConsumidor);
@@ -41,6 +43,31 @@ public abstract class ConsumidorBase implements Runnable {
 		scheduler.submit(this);
 
 	}
+	
+	private String getID() {
+        String ip;
+        try {
+            ip = InetAddress.getLocalHost().getHostAddress();
+            if (ehIpv4(ip)) {
+                return ip + ":" + ConfigProvider.getConfig().getValue("quarkus.http.port", String.class);
+            } else {
+                return UUID.randomUUID().toString();
+            }
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    
+
+    private boolean ehIpv4(String ip) {
+        if(ip.length()<=15) {
+            return true;
+        }
+        return false;   
+    }
+	
 
 	void onStop(@Observes ShutdownEvent ev) {
 		logger.info("<<< Finalizando consumidor... idConsumidor=" + idConsumidor);
@@ -53,15 +80,15 @@ public abstract class ConsumidorBase implements Runnable {
 
 		while (true) {
 			Instant start = Instant.now();
-			logger.trace("[START] >>>" );
+			logger.info("[START] >>>" );
 			try {
 				
 				ConfiguracaoConsumidor configuracaoConsumidor = configuracaoConsumidor(idConsumidor);
 				try {
 					logger.trace("[chamar operacao] >>>" );
-					PayloadEventoCaipora proximo = brokerCaiporaResource.buscarProximo(configuracaoConsumidor);
+					EventoComunicacao proximo = brokerCaiporaResource.buscarProximo(configuracaoConsumidor);
 					logger.trace("[resposta operacao] >>>" +proximo.toString());
-					if (proximo.getCodigoRetorno()  == 200) {
+					if (proximo.getCodigoRetornoProcessamento()  == 200) {
 						logger.trace("[tem mensagem para processar] >>>");
 						Instant startCiclo = Instant.now();
 						try {
@@ -81,9 +108,9 @@ public abstract class ConsumidorBase implements Runnable {
 							
 							
 
-							logger.trace("[iniciar finalizar]");
+							logger.info("[iniciar finalizar]");
 							brokerCaiporaResource.finalizarEvento(proximo);
-							logger.trace("[finalizar finalizar]");
+							logger.info("[finalizar finalizar]");
 						} finally {
 							Instant endCiclo = Instant.now();
 							logger.info(
@@ -91,7 +118,7 @@ public abstract class ConsumidorBase implements Runnable {
 						}
 					} else {
 						logger.debug("DIFERENTE DE 200"+proximo.toString());
-						Thread.sleep(500);
+						Thread.sleep(1000);
 					}
 				} catch (Exception e) {
 					logger.error(e.getMessage());
@@ -105,10 +132,10 @@ public abstract class ConsumidorBase implements Runnable {
 
 			} finally {
 				Instant end = Instant.now();
-				logger.trace(">>> END deltaTotal=" + Duration.between(start, end).toMillis() + "ms");
+				logger.info(">>> END deltaTotal=" + Duration.between(start, end).toMillis() + "ms");
 			}
 			
-			logger.trace("[END] <<<" );
+			logger.info("[END] <<<" );
 			
 		}
 	}

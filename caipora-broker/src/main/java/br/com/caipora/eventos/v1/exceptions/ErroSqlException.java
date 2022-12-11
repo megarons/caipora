@@ -19,7 +19,7 @@ public class ErroSqlException extends ErroNegocialException {
         int code = -1;
         String sqlQuery = "";
         String motivo;
-
+        e.printStackTrace();
         
         if (!erroCausaComunicacao(e) && e.getCause() instanceof SQLException) {
 
